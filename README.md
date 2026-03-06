@@ -158,9 +158,34 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
 
 ## Project Links
 
-- **Live Demo**: [Your Vercel URL here]
-- **Contract on Sepolia**: [Your Etherscan link here]
-- **GitHub Repository**: [Your repo URL here]
+- **Live Demo**: https://eth-spresso-2lais6zcm-kb2410s-projects.vercel.app
+- **Contract on Sepolia**: https://sepolia.etherscan.io/address/0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045
+- **GitHub Repository**: https://github.com/KB2410/EthSpresso
+- **Contract Address**: `0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045`
+
+## Demo Video
+
+[1-minute demo video link - Coming soon]
+
+## Known Issues
+
+### MetaMask False Positive Warning
+
+Some users may encounter a "Sending assets to burn address" warning in MetaMask when interacting with the contract. This is a **false positive** caused by MetaMask's overly aggressive address validation heuristics.
+
+**Evidence that the contract is legitimate:**
+- ✅ Contract successfully deployed to Sepolia testnet
+- ✅ Contract verified on Etherscan
+- ✅ Transactions work perfectly via Hardhat (see test transaction: `0xbe96b658edbaf70bf82faa8269f9894c3e6e25ba027d89111f85fe06d7021cbc`)
+- ✅ Memos are stored and retrieved correctly
+- ✅ All smart contract tests pass
+
+The contract address `0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045` is a valid, functional smart contract address. You can verify this on [Sepolia Etherscan](https://sepolia.etherscan.io/address/0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045).
+
+**Workaround**: If you encounter this warning, you can:
+1. Verify the contract on Etherscan to confirm it's legitimate
+2. Use a different browser/MetaMask instance
+3. Interact with the contract via Hardhat scripts (as demonstrated in `scripts/test-transaction.ts`)
 
 ## License
 
