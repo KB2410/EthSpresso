@@ -6,7 +6,7 @@ import { parseEther, formatEther } from 'viem';
 import { injected } from 'wagmi/connectors';
 
 // Deployed BuyMeACoffee contract on Sepolia testnet
-const CONTRACT_ADDRESS = '0x63dd4574Acbc908b9c1E59Fd7ef7B628B6EFac96' as const;
+const CONTRACT_ADDRESS = '0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045' as const;
 
 const CONTRACT_ABI = [
   {
