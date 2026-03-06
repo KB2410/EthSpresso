@@ -109,12 +109,58 @@ npm run frontend:build
 - ✅ Input validation (rejects 0 ETH transactions)
 - ✅ Comprehensive test coverage (3/3 tests passing)
 
-### Frontend (In Progress)
-- ⏳ Wallet connection with RainbowKit
-- ⏳ Real-time transaction status feedback
-- ⏳ Efficient data caching with React Query
-- ⏳ Responsive design for mobile and desktop
-- ⏳ View all tips and messages on-chain
+### Frontend (Completed ✅)
+- ✅ Wallet connection (Connect/Disconnect)
+- ✅ Real-time transaction status feedback
+- ✅ Efficient data caching with React Query
+- ✅ Responsive design for mobile and desktop
+- ✅ View all tips and messages on-chain
+- ✅ Beautiful gradient UI with Tailwind CSS
+
+## Deployment
+
+### Deploy Smart Contract to Sepolia
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+**Quick steps:**
+1. Get Sepolia ETH from a faucet
+2. Create `.env` file with your credentials
+3. Deploy: `npx hardhat run scripts/deploy.ts --network sepolia`
+4. Copy the contract address
+5. Update `CONTRACT_ADDRESS` in `frontend/app/page.tsx`
+
+### Deploy Frontend to Vercel
+
+1. **Push to GitHub**:
+   ```bash
+   git add .
+   git commit -m "feat: complete EthSpresso dApp"
+   git push origin main
+   ```
+
+2. **Deploy on Vercel**:
+   - Go to [Vercel.com](https://vercel.com)
+   - Log in with GitHub
+   - Click "Add New Project"
+   - Select your `ethspresso` repository
+   - Click "Deploy"
+   - Vercel will auto-detect Next.js and deploy
+
+3. **Get your live URL** from Vercel dashboard
+
+### Verify Deployment
+
+1. Visit your Vercel URL
+2. Connect MetaMask (switch to Sepolia network)
+3. Send a test tip
+4. View your memo in the list
+
+## Project Links
+
+- **Live Demo**: [Your Vercel URL here]
+- **Contract on Sepolia**: [Your Etherscan link here]
+- **GitHub Repository**: [Your repo URL here]
 
 ## License
 

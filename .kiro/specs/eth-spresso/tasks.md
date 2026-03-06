@@ -71,7 +71,7 @@ This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete
     - Test multiple tips from same address
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 3. Create deployment script
+- [x] 3. Create deployment script
   - Write `scripts/deploy.ts` to deploy EthSpresso contract
   - Log deployed contract address and owner
   - Export contract address and ABI for frontend use
@@ -81,7 +81,7 @@ This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete
   - Run `npx hardhat test` and verify all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Set up frontend configuration and providers
+- [-] 5. Set up frontend configuration and providers
   - [ ] 5.1 Create wagmi configuration
     - Create `frontend/lib/wagmi.ts` with chain configuration
     - Configure RPC endpoints for target network
@@ -97,7 +97,7 @@ This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete
     - Create `frontend/types/index.ts` with Memo, FormattedMemo, TransactionStatus, TransactionState, and TipFormData interfaces
     - _Requirements: 5.2, 7.1, 7.2, 7.3, 7.4_
   
-  - [ ] 5.4 Configure root layout with providers
+  - [x] 5.4 Configure root layout with providers
     - Create `frontend/app/layout.tsx` with WagmiProvider and QueryClientProvider
     - Configure React Query with appropriate cache settings
     - Add Tailwind CSS imports to `frontend/app/globals.css`
@@ -249,7 +249,7 @@ This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete
     - Test memo formatting (address abbreviation, ETH conversion, timestamp)
     - _Requirements: 5.1, 5.2_
 
-- [ ] 11. Create main page component
+- [x] 11. Create main page component
   - [ ] 11.1 Implement main page layout
     - Create `frontend/app/page.tsx`
     - Import and compose WalletConnect, TipForm, TransactionStatus, and MemoList components
