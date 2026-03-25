@@ -12,6 +12,7 @@ import {
   Networks,
   Address,
   xdr,
+  Account,
   Contract,
   TimeoutInfinite,
   nativeToScVal,
@@ -27,8 +28,16 @@ export default function AuctionUI() {
   const [highestBid, setHighestBid] = useState<number>(0);
   const [bidAmount, setBidAmount] = useState<string>("");
   const [isBidding, setIsBidding] = useState<boolean>(false);
+  const [status, setStatus] = useState("");
+  const [timeLeft, setTimeLeft] = useState<string>("");
 
   const server = new rpc.Server(RPC_URL);
+
+  // Placeholder for auction data, will be fetched from contract
+  const [auctionData, setAuctionData] = useState({
+    highestBid: 0,
+    endTime: 0, // Unix timestamp in seconds
+  });
 
   // 1️⃣ CONNECT WALLET FUNCTION
   const connectWallet = async () => {
@@ -139,6 +148,7 @@ export default function AuctionUI() {
                     // Extracting the lo bit natively parses typical XLM numbers successfully in JS safely up to 2^53
                     const parsedAmount = Number(rawVal.i128().lo().toString());
                     setHighestBid(parsedAmount);
+                    setAuctionData(prev => ({ ...prev, highestBid: parsedAmount }));
                 }
              } catch (err) {
                 console.error("Error parsing XDR event value:", err);
@@ -150,13 +160,71 @@ export default function AuctionUI() {
       }
     };
 
-    // Poll every 5 seconds for new events
+    // Placeholder for fetching auction details (e.g., end time)
+    const fetchAuctionDetails = async () => {
+      try {
+        const contract = new Contract(CONTRACT_ID);
+        // TransactionBuilder needs an Account object, not just an Address
+        const dummyAccount = new Account(walletAddress || "GBAF7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y", "0");
+        const getEndTimeOperation = contract.call("get_end_time");
+        
+        const getEndTimeTx = new TransactionBuilder(dummyAccount, {
+          fee: "100",
+          networkPassphrase: NETWORK_PASSPHRASE,
+        })
+          .addOperation(getEndTimeOperation)
+          .setTimeout(TimeoutInfinite)
+          .build();
+
+        const simulatedTx = await server.simulateTransaction(getEndTimeTx);
+        if (simulatedTx && rpc.Api.isSimulationSuccess(simulatedTx)) {
+          const endTimeScVal = simulatedTx.result?.retval;
+          if (endTimeScVal && endTimeScVal.switch() === xdr.ScValType.scvU64()) {
+            const endTime = Number(endTimeScVal.u64().toString());
+            setAuctionData(prev => ({ ...prev, endTime }));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching auction details:", error);
+      }
+    };
+
     if (CONTRACT_ID) {
       intervalId = setInterval(fetchEvents, 5000);
+      // Fetch auction details initially and then periodically if needed
+      fetchAuctionDetails();
+      const detailsInterval = setInterval(fetchAuctionDetails, 30000); // Update every 30 seconds
+      return () => {
+        clearInterval(intervalId);
+        clearInterval(detailsInterval);
+      };
     }
+    
+    // Countdown timer interval
+    const timerId = setInterval(() => {
+      if (auctionData.endTime === 0) return;
+      
+      const now = Math.floor(Date.now() / 1000);
+      const remaining = auctionData.endTime - now;
+      
+      if (remaining <= 0) {
+        setTimeLeft("Auction Ended");
+        setStatus("ended");
+        return;
+      }
+      
+      const hours = Math.floor(remaining / 3600);
+      const minutes = Math.floor((remaining % 3600) / 60);
+      const seconds = remaining % 60;
+      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      setStatus("active");
+    }, 1000);
 
-    return () => clearInterval(intervalId);
-  }, []);
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(timerId);
+    };
+  }, [walletAddress, auctionData.endTime]); // Re-run if walletAddress or endTime changes
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
@@ -177,7 +245,15 @@ export default function AuctionUI() {
           
           <div className="p-4 bg-gray-100 rounded-lg text-center">
             <p className="text-gray-500 text-sm">Current Highest Bid</p>
-            <p className="text-3xl font-bold">{highestBid} XLM</p>
+            <p className="text-3xl font-bold text-gray-900">
+              {auctionData.highestBid} <span className="text-sm font-normal text-gray-500 uppercase">XLM</span>
+            </p>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+            <p className="text-sm font-medium text-blue-600 mb-1 uppercase tracking-wider">Time Remaining</p>
+            <p className="text-2xl font-mono font-bold text-blue-800">
+              {timeLeft || "Calculating..."}
+            </p>
           </div>
 
           <div className="flex space-x-2">
