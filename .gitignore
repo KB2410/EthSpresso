@@ -24,3 +24,11 @@ frontend/node_modules
 # OS
 .DS_Store
 Thumbs.db
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+# Soroban
+soroban-contracts/target/
+.soroban/
+target/

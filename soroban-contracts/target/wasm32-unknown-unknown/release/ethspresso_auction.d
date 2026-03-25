@@ -1,1 +1,0 @@
-/Users/kartikbotre/Projects/Stellar\ Mastery\ Projects/EthSpresso/soroban-contracts/target/wasm32-unknown-unknown/release/ethspresso_auction.wasm: /Users/kartikbotre/Projects/Stellar\ Mastery\ Projects/EthSpresso/soroban-contracts/src/lib.rs
