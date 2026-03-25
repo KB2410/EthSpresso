@@ -157,7 +157,7 @@ export default function AuctionUI() {
       
       const adminScVal = new Address(walletAddress).toScVal();
       const itemScVal = nativeToScVal("EthSpresso Auction Item", { type: "string" });
-      const tokenScVal = new Address("CDLZFC3SYJYDZT7K67VZ75HXZS65IRNC77T2GL2R37ZXYYRW3YJ4Y6Y4").toScVal(); // Native XLM Testnet SAC
+      const tokenScVal = new Address("CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA").toScVal(); 
       const durationScVal = nativeToScVal(3600 * 24, { type: "u64" }); // 24 hours
 
       let tx = new TransactionBuilder(account, {
@@ -240,8 +240,9 @@ export default function AuctionUI() {
       try {
         const contract = new Contract(CONTRACT_ID);
         // TransactionBuilder needs an Account object, not just an Address
-        // Using a valid Testnet G address as fallback for simulation
-        const dummyAccount = new Account(walletAddress || "GBAF7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y7Y5Y", "0");
+        // Fallback must be exactly 56 valid characters (A-Z, 2-7, no I, L, O, 0, 1)
+        const validFallback = "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        const dummyAccount = new Account(walletAddress || validFallback, "0");
         const getEndTimeOperation = contract.call("get_end_time");
         
         const getEndTimeTx = new TransactionBuilder(dummyAccount, {
