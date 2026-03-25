@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
@@ -15,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EthSpresso - Buy Me a Coffee",
-  description: "Send ETH tips with personalized messages on the blockchain",
+  title: "EthSpresso - Stellar Auction",
+  description: "Real-time decentralized auction platform built on the Stellar network",
 };
 
 export default function RootLayout({
@@ -29,7 +28,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        {children}
         <SpeedInsights />
       </body>
     </html>
