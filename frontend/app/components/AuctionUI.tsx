@@ -17,6 +17,7 @@ import {
   TimeoutInfinite,
   ScInt,
   nativeToScVal,
+  Operation,
 } from "@stellar/stellar-sdk";
 
 // ⚠️ PASTE YOUR DEPLOYED CONTRACT ID HERE
@@ -111,12 +112,24 @@ export default function AuctionUI() {
       // SES-safe explicit construction using BigInt and typed ScInt
       const amountScVal = new ScInt(BigInt(bidAmount), { type: "i128" }).toScVal();
 
+      // ✅ Bypass contract.call() entirely — build XDR manually for SES compatibility
+      const invokeArgs = new xdr.InvokeContractArgs({
+        contractAddress: new Address(CONTRACT_ID).toScAddress(),
+        functionName: "bid",
+        args: [bidderScVal, amountScVal],
+      });
+      const hostFn = xdr.HostFunction.hostFunctionTypeInvokeContract(invokeArgs);
+      const operation = Operation.invokeHostFunction({
+        func: hostFn,
+        auth: [],
+      });
+
       // Build the transaction
       let tx = new TransactionBuilder(account, {
         fee: "100", // Base fee, Soroban requires fee simulation later
         networkPassphrase: NETWORK_PASSPHRASE,
       })
-        .addOperation(contract.call("bid", bidderScVal, amountScVal))
+        .addOperation(operation)
         .setTimeout(TimeoutInfinite)
         .build();
 
@@ -167,11 +180,23 @@ export default function AuctionUI() {
       
       const userScVal = new Address(walletAddress).toScVal();
 
+      // ✅ Bypass contract.call() manually for SES
+      const invokeArgs = new xdr.InvokeContractArgs({
+        contractAddress: new Address(CONTRACT_ID).toScAddress(),
+        functionName: "withdraw",
+        args: [userScVal],
+      });
+      const hostFn = xdr.HostFunction.hostFunctionTypeInvokeContract(invokeArgs);
+      const operation = Operation.invokeHostFunction({
+        func: hostFn,
+        auth: [],
+      });
+
       let tx = new TransactionBuilder(account, {
         fee: "100",
         networkPassphrase: NETWORK_PASSPHRASE,
       })
-        .addOperation(contract.call("withdraw", userScVal))
+        .addOperation(operation)
         .setTimeout(TimeoutInfinite)
         .build();
 
@@ -213,13 +238,25 @@ export default function AuctionUI() {
       // Stellar Testnet Native XLM contract ID
       const tokenScVal = new Address("CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC").toScVal(); 
       // 🚨 FIX: SES-safe U64 formatting using BigInt and explicit typed ScInt
-      const durationScVal = new ScInt(BigInt(3600 * 24), { type: "u64" }).toScVal(); 
+      const durationScVal = new ScInt(BigInt(3600 * 24), { type: "u64" }).toScVal();
+
+      // ✅ Bypass contract.call() entirely — build XDR manually
+      const invokeArgs = new xdr.InvokeContractArgs({
+        contractAddress: new Address(CONTRACT_ID).toScAddress(),
+        functionName: "initialize",
+        args: [adminScVal, itemScVal, tokenScVal, durationScVal],
+      });
+      const hostFn = xdr.HostFunction.hostFunctionTypeInvokeContract(invokeArgs);
+      const operation = Operation.invokeHostFunction({
+        func: hostFn,
+        auth: [],
+      });
 
       let tx = new TransactionBuilder(account, {
         fee: "100",
         networkPassphrase: NETWORK_PASSPHRASE,
       })
-        .addOperation(contract.call("initialize", adminScVal, itemScVal, tokenScVal, durationScVal))
+        .addOperation(operation)
         .setTimeout(TimeoutInfinite)
         .build();
 
