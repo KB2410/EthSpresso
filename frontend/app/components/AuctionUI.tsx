@@ -10,56 +10,53 @@ import {
   rpc,
   TransactionBuilder,
   Networks,
-  Address,
   xdr,
   Account,
   Contract,
   TimeoutInfinite,
+  Address,
   ScInt,
-  nativeToScVal,
-  Operation,
 } from "@stellar/stellar-sdk";
 
 // ⚠️ PASTE YOUR DEPLOYED CONTRACT ID HERE
-const CONTRACT_ID = "CCABVHDIAQM4V4GYG6IOF36A5FKXUVYP7P7BFQXHCECHN673STEKFCHY";
+const CONTRACT_ID = "CCLI6FFDYPVD7E6A45Q6QKHADRAOJTQXE35H5KQGQMYJTFJECXJQNVCV";
 const RPC_URL = "https://soroban-testnet.stellar.org:443";
 const NETWORK_PASSPHRASE = Networks.TESTNET;
 
-// Final fail-safe helper to extract values from any ScVal format (hydrated or raw)
+// 🚨 THE WASHER: Sanitizes objects to prevent the Next.js e.switch crash
+const safeScVal = (scval: any) => {
+  if (!scval) return scval;
+  try {
+    const b64 = typeof scval.toXDR === 'function' ? scval.toXDR("base64") : scval;
+    return xdr.ScVal.fromXDR(b64, "base64");
+  } catch (e) {
+    console.error("XDR Washing failed", e);
+    return scval;
+  }
+};
+
+// Extract values safely
 const extractScValValue = (val: any): any => {
   if (!val) return null;
   let hydrated = val;
-  // If it's a string, hydrate it first
   if (typeof val === 'string') {
-    try {
-      hydrated = xdr.ScVal.fromXDR(val, 'base64');
-    } catch (e) {
-      console.warn("XDR parse failed:", e);
-      return null;
-    }
+    try { hydrated = xdr.ScVal.fromXDR(val, 'base64'); } catch (e) { return null; }
   }
-
-  // Robust extraction: Check common Soroban types
   try {
-    // 1. Try hydrated getters (Stellar SDK pattern)
     if (typeof hydrated.u64 === 'function') return hydrated.u64()?.toString();
     if (typeof hydrated.i128 === 'function') {
-        const parts = hydrated.i128();
-        return (parts.lo?.toString() || parts.lo?.()?.toString() || "0");
+        const i128 = hydrated.i128();
+        return (i128.lo?.toString() || i128.lo?.()?.toString() || "0");
     }
     if (typeof hydrated.str === 'function') return hydrated.str()?.toString();
     if (typeof hydrated.sym === 'function') return hydrated.sym()?.toString();
     if (typeof hydrated.address === 'function') return hydrated.address()?.toString();
-
-    // 2. Try raw property access (POJO fallback)
+    
     const raw = hydrated._value || hydrated;
     if (raw.u64) return raw.u64.toString();
     if (raw.i128) return (raw.i128.lo?.toString() || "0");
     if (raw.str) return raw.str.toString();
-    if (raw.sym) return raw.sym.toString();
-  } catch (e) {
-    console.warn("Extraction failed:", e);
-  }
+  } catch (e) { /* silent fail */ }
   return null;
 };
 
@@ -73,19 +70,39 @@ export default function AuctionUI() {
 
   const server = new rpc.Server(RPC_URL);
 
-  // Placeholder for auction data, will be fetched from contract
   const [auctionData, setAuctionData] = useState({
     highestBid: 0,
     endTime: 0,
     userRefund: 0,
   });
 
-  // 1️⃣ CONNECT WALLET FUNCTION
+  // Helper to extract signed XDR safely
+  const getSignedXdr = (response: any): string => {
+    console.log("Freighter response received:", response);
+    if (typeof response === "string") return response;
+    if (!response) throw new Error("Empty response from Freighter");
+    
+    // Check every possible property name used by various wallet versions
+    const xdrStr = response.signed_tx || 
+                   response.signedTransaction || 
+                   response.signedTxXdr ||
+                   response.signed_xdr ||
+                   response.signedXdr ||
+                   response.xdr ||
+                   response.result?.xdr ||
+                   response.result?.signed_tx;
+
+    if (typeof xdrStr === "string") return xdrStr;
+    
+    console.error("Unknown Freighter response format:", response);
+    throw new Error("Could not extract signed XDR. Check console for response structure.");
+  };
+
+  // 1️⃣ CONNECT WALLET
   const connectWallet = async () => {
     try {
       if (await isConnected()) {
         const access = await requestAccess();
-        // Fallback for different `@stellar/freighter-api` interface versions
         setWalletAddress(typeof access === 'string' ? access : (access as any).address || access);
       } else {
         alert("Please install the Freighter wallet extension!");
@@ -101,74 +118,56 @@ export default function AuctionUI() {
     setIsBidding(true);
 
     try {
-      // 🚨 FIX: Correctly fetch and construct the Account object
       const sourceAccount = await server.getAccount(walletAddress);
       const account = new Account(walletAddress, sourceAccount.sequenceNumber());
-      
       const contract = new Contract(CONTRACT_ID);
       
-      // Convert arguments to XDR ScVal types for Rust
-      const bidderScVal = new Address(walletAddress).toScVal();
-      // SES-safe explicit construction using BigInt and typed ScInt
-      const amountScVal = new ScInt(BigInt(bidAmount), { type: "i128" }).toScVal();
+      const bidderScVal = safeScVal(new Address(walletAddress).toScVal());
+      // 🚨 FIX: Force explicit i128 type to match the contract and prevent Wasm traps
+      const bidAmountStrokes = BigInt(Math.floor(Number(bidAmount) * 10000000));
+      
+      // 🚨 PRE-CHECK: Don't even try if the bid isn't higher
+      if (Number(bidAmount) <= auctionData.highestBid) {
+        throw new Error(`Your bid of ${bidAmount} XLM must be higher than the current bid of ${auctionData.highestBid} XLM!`);
+      }
 
-      // ✅ Bypass contract.call() entirely — build XDR manually for SES compatibility
-      const invokeArgs = new xdr.InvokeContractArgs({
-        contractAddress: new Address(CONTRACT_ID).toScAddress(),
-        functionName: "bid",
-        args: [bidderScVal, amountScVal],
-      });
-      const hostFn = xdr.HostFunction.hostFunctionTypeInvokeContract(invokeArgs);
-      const operation = Operation.invokeHostFunction({
-        func: hostFn,
-        auth: [],
-      });
+      const amountScVal = safeScVal(xdr.ScVal.scvI128(new xdr.Int128Parts({
+        lo: xdr.Uint64.fromString((bidAmountStrokes & BigInt("0xFFFFFFFFFFFFFFFF")).toString()),
+        hi: xdr.Int64.fromString((bidAmountStrokes >> BigInt(64)).toString()),
+      })));
 
-      // Build the transaction
       let tx = new TransactionBuilder(account, {
-        fee: "100", // Base fee, Soroban requires fee simulation later
+        fee: "1000", 
         networkPassphrase: NETWORK_PASSPHRASE,
       })
-        .addOperation(operation)
+        .addOperation(contract.call("bid", bidderScVal, amountScVal))
         .setTimeout(TimeoutInfinite)
         .build();
 
-      // Simulate the transaction to get the actual fee and resource footprint
       const simulatedTx = await server.simulateTransaction(tx);
       if (!simulatedTx || rpc.Api.isSimulationError(simulatedTx)) {
-        throw new Error("Transaction simulation failed");
+        const errorMsg = (simulatedTx as any).error || "Simulation failed";
+        console.error("Simulation Details:", simulatedTx);
+        throw new Error(`Simulation failed: ${JSON.stringify(errorMsg)}`);
       }
 
-      // Assemble the final transaction with the simulated footprint
       tx = rpc.assembleTransaction(tx, simulatedTx as any).build();
-
-      // Request Freighter to sign it
-      const signedResponse = await signTransaction(tx.toXDR(), {
-        networkPassphrase: NETWORK_PASSPHRASE
-      });
-
-      // Flexible extraction in case of API variations (string vs object)
-      const signedXdr = typeof signedResponse === 'string' 
-        ? signedResponse 
-        : (signedResponse as any).signed_tx || (signedResponse as any).signedTransaction || signedResponse;
+      const signedResponse = await signTransaction(tx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
+      const signedXdr = getSignedXdr(signedResponse);
       
-      console.log("Signed XDR extracted:", signedXdr);
-
-      // Submit to the network
-      const txToSubmit = TransactionBuilder.fromXDR(signedXdr as string, NETWORK_PASSPHRASE);
-      const response = await server.sendTransaction(txToSubmit);
-
+      const response = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE));
       if (response.status === "PENDING") {
-        console.log("Transaction submitted, waiting for confirmation...");
-        setBidAmount(""); // Clear input on success
+        setBidAmount(""); 
+        alert("Bid placed successfully!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error placing bid:", error);
-      alert("Failed to place bid. Check console for details.");
+      alert(`Failed to place bid: ${error.message || error}`);
     } finally {
       setIsBidding(false);
     }
   };
+
   // 2.7️⃣ WITHDRAW REFUND FUNCTION
   const withdrawRefund = async () => {
     if (!walletAddress) return;
@@ -178,114 +177,71 @@ export default function AuctionUI() {
       const account = new Account(walletAddress, sourceAccount.sequenceNumber());
       const contract = new Contract(CONTRACT_ID);
       
-      const userScVal = new Address(walletAddress).toScVal();
-
-      // ✅ Bypass contract.call() manually for SES
-      const invokeArgs = new xdr.InvokeContractArgs({
-        contractAddress: new Address(CONTRACT_ID).toScAddress(),
-        functionName: "withdraw",
-        args: [userScVal],
-      });
-      const hostFn = xdr.HostFunction.hostFunctionTypeInvokeContract(invokeArgs);
-      const operation = Operation.invokeHostFunction({
-        func: hostFn,
-        auth: [],
-      });
+      const userScVal = safeScVal(new Address(walletAddress).toScVal());
 
       let tx = new TransactionBuilder(account, {
-        fee: "100",
+        fee: "1000",
         networkPassphrase: NETWORK_PASSPHRASE,
       })
-        .addOperation(operation)
+        .addOperation(contract.call("withdraw", userScVal))
         .setTimeout(TimeoutInfinite)
         .build();
 
       const simulatedTx = await server.simulateTransaction(tx);
+      if (!simulatedTx || rpc.Api.isSimulationError(simulatedTx)) throw new Error("Simulation failed");
+      
       tx = rpc.assembleTransaction(tx, simulatedTx as any).build();
-
       const signedResponse = await signTransaction(tx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
-      const signedXdr = typeof signedResponse === 'string' 
-        ? signedResponse 
-        : (signedResponse as any).signed_tx || (signedResponse as any).signedTransaction || signedResponse;
+      const signedXdr = getSignedXdr(signedResponse);
       
-      const response = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr as string, NETWORK_PASSPHRASE));
-      
-      if (response.status === "PENDING") {
-        alert("Refund withdrawn! Check your wallet in a few seconds.");
-      }
+      const response = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE));
+      if (response.status === "PENDING") alert("Refund withdrawn!");
     } catch (error) {
       console.error("Withdrawal failed:", error);
-      alert("Withdrawal failed. You may not have a pending refund.");
+      alert("Withdrawal failed.");
     } finally {
       setIsBidding(false);
     }
   };
 
-  // 2.5️⃣ INITIALIZE AUCTION FUNCTION (ADMIN ONLY)
+  // 2.5️⃣ INITIALIZE AUCTION FUNCTION
   const initializeAuction = async () => {
     if (!walletAddress) return;
     setIsBidding(true);
     try {
-      // 🚨 FIX: Correctly fetch and construct the Account object
       const sourceAccount = await server.getAccount(walletAddress);
       const account = new Account(walletAddress, sourceAccount.sequenceNumber());
-      
       const contract = new Contract(CONTRACT_ID);
       
-      const adminScVal = new Address(walletAddress).toScVal();
-      // SES-safe explicit string construction
-      const itemScVal = xdr.ScVal.scvString("BrewBid Special Roast");
-      // Stellar Testnet Native XLM contract ID
-      const tokenScVal = new Address("CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC").toScVal(); 
-      // 🚨 FIX: SES-safe U64 formatting using BigInt and explicit typed ScInt
-      const durationScVal = new ScInt(BigInt(3600 * 24), { type: "u64" }).toScVal();
-
-      // ✅ Bypass contract.call() entirely — build XDR manually
-      const invokeArgs = new xdr.InvokeContractArgs({
-        contractAddress: new Address(CONTRACT_ID).toScAddress(),
-        functionName: "initialize",
-        args: [adminScVal, itemScVal, tokenScVal, durationScVal],
-      });
-      const hostFn = xdr.HostFunction.hostFunctionTypeInvokeContract(invokeArgs);
-      const operation = Operation.invokeHostFunction({
-        func: hostFn,
-        auth: [],
-      });
+      const adminScVal = safeScVal(new Address(walletAddress).toScVal());
+      const itemScVal = safeScVal(xdr.ScVal.scvString("BrewBid Special Roast"));
+      const tokenScVal = safeScVal(new Address("CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC").toScVal()); 
+      const durationScVal = safeScVal(new ScInt(86400).toScVal());
 
       let tx = new TransactionBuilder(account, {
-        fee: "100",
+        fee: "1000", 
         networkPassphrase: NETWORK_PASSPHRASE,
       })
-        .addOperation(operation)
+        .addOperation(contract.call("initialize", adminScVal, itemScVal, tokenScVal, durationScVal))
         .setTimeout(TimeoutInfinite)
         .build();
 
-        const simulatedTx = await server.simulateTransaction(tx);
-        if (simulatedTx && rpc.Api.isSimulationSuccess(simulatedTx)) {
-          // Extract end time directly using our fail-safe
-          const endTime = extractScValValue(simulatedTx.result?.retval);
-          if (endTime) {
-            setAuctionData(prev => ({ ...prev, endTime: Number(endTime) }));
-          }
-
-          // Assemble and submit
-          tx = rpc.assembleTransaction(tx, simulatedTx as any).build();
-          const signedResponse = await signTransaction(tx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
-          const signedXdr = typeof signedResponse === 'string' 
-            ? signedResponse 
-            : (signedResponse as any).signed_tx || (signedResponse as any).signedTransaction || signedResponse;
-          
-          const response = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr as string, NETWORK_PASSPHRASE));
-          
-          if (response.status === "PENDING") {
-            alert("Auction Initialized! Refresh in a few seconds.");
-          }
-        } else {
-             throw new Error("Init simulation failed");
-        }
+      const simulatedTx = await server.simulateTransaction(tx);
+      
+      if (simulatedTx && rpc.Api.isSimulationSuccess(simulatedTx)) {
+        tx = rpc.assembleTransaction(tx, simulatedTx).build();
+        const signedResponse = await signTransaction(tx.toXDR(), { networkPassphrase: NETWORK_PASSPHRASE });
+        const signedXdr = getSignedXdr(signedResponse);
+        
+        const response = await server.sendTransaction(TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE));
+        if (response.status === "PENDING") alert("Auction Initialized! Refresh in a few seconds.");
+      } else {
+        console.error("Simulation Details:", simulatedTx);
+        throw new Error("Init simulation failed. The contract might already be initialized.");
+      }
     } catch (error) {
       console.error("Initialization failed:", error);
-      alert("Initialization failed. See console.");
+      alert("Initialization failed. Check the console log.");
     } finally {
       setIsBidding(false);
     }
@@ -297,116 +253,78 @@ export default function AuctionUI() {
 
     const fetchEvents = async () => {
       try {
-        // We look for events emitted by our specific contract
         const latestLedger = await server.getLatestLedger();
-        
         const response = await server.getEvents({
-          startLedger: latestLedger.sequence - 10, // Check the last 10 ledgers
+          startLedger: latestLedger.sequence - 10,
           filters: [
             {
               type: "contract",
               contractIds: [CONTRACT_ID],
-              // Explicitly filter by topics: "Bid"
-              topics: [
-                [xdr.ScVal.scvSymbol("Bid").toXDR("base64") as any]
-              ],
+              topics: [ [xdr.ScVal.scvSymbol("Bid").toXDR("base64") as any] ],
             },
           ],
         });
-        // Parse events to find the highest bid
         if (response.events && response.events.length > 0) {
           response.events.forEach((event: any) => {
-              try {
-                // Fail-safe extraction for event value
-                const amount = extractScValValue(event.value);
-                if (amount) {
-                    setHighestBid(Number(amount));
-                    setAuctionData(prev => ({ ...prev, highestBid: Number(amount) }));
-                }
-             } catch (err) {
-                console.error("Error parsing XDR event value:", err);
-             }
+              const amount = extractScValValue(event.value);
+              if (amount) {
+                  setHighestBid(Number(amount));
+                  setAuctionData(prev => ({ ...prev, highestBid: Number(amount) }));
+              }
           });
         }
-      } catch (error) {
-        console.error("Error fetching events:", error);
-      }
+      } catch (error) { console.error("Error fetching events:", error); }
     };
 
-    // Placeholder for fetching auction details (e.g., end time)
     const fetchAuctionDetails = async () => {
       try {
         const contract = new Contract(CONTRACT_ID);
-        // TransactionBuilder needs an Account object, not just an Address
-        // Fallback must be a valid 56-character StrKey with correct checksum
         const validFallback = "GCVAOJMF36XH5D5ZONRFIXOQTLAA7HFI3BWUMBMQKGPEKL2FJIRNFWPO";
         const dummyAccount = new Account(walletAddress || validFallback, "0");
-        const getEndTimeOperation = contract.call("get_end_time");
         
-        const getEndTimeTx = new TransactionBuilder(dummyAccount, {
-          fee: "100",
-          networkPassphrase: NETWORK_PASSPHRASE,
-        })
-          .addOperation(getEndTimeOperation)
-          .setTimeout(TimeoutInfinite)
-          .build();
+        // Fetch End Time
+        const getEndTimeTx = new TransactionBuilder(dummyAccount, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
+          .addOperation(contract.call("get_end_time"))
+          .setTimeout(TimeoutInfinite).build();
 
-          const simulatedTx = await server.simulateTransaction(getEndTimeTx);
-          if (simulatedTx && rpc.Api.isSimulationSuccess(simulatedTx)) {
-            const endTime = extractScValValue(simulatedTx.result?.retval);
-            if (endTime) {
-              setAuctionData(prev => ({ ...prev, endTime: Number(endTime) }));
-            }
-          }
+        const simulatedTx = await server.simulateTransaction(getEndTimeTx);
+        if (simulatedTx && rpc.Api.isSimulationSuccess(simulatedTx)) {
+          const endTime = extractScValValue(simulatedTx.result?.retval);
+          if (endTime) setAuctionData(prev => ({ ...prev, endTime: Number(endTime) }));
+        }
 
-        // Also fetch user refund if wallet is connected
+        // Fetch User Refund
         if (walletAddress) {
-          const userScVal = new Address(walletAddress).toScVal();
-          const getRefundTx = new TransactionBuilder(dummyAccount, {
-            fee: "100",
-            networkPassphrase: NETWORK_PASSPHRASE,
-          })
+          const userScVal = safeScVal(new Address(walletAddress).toScVal());
+          const getRefundTx = new TransactionBuilder(dummyAccount, { fee: "100", networkPassphrase: NETWORK_PASSPHRASE })
             .addOperation(contract.call("get_refund", userScVal))
-            .setTimeout(TimeoutInfinite)
-            .build();
+            .setTimeout(TimeoutInfinite).build();
           
           const refundSim = await server.simulateTransaction(getRefundTx);
           if (refundSim && rpc.Api.isSimulationSuccess(refundSim)) {
             const refund = extractScValValue(refundSim.result?.retval);
-            if (refund !== null) {
-              setAuctionData(prev => ({ ...prev, userRefund: Number(refund) }));
-            }
+            if (refund !== null) setAuctionData(prev => ({ ...prev, userRefund: Number(refund) }));
           }
         }
-      } catch (error) {
-        console.error("Error fetching auction details:", error);
-      }
+      } catch (error) { console.error("Error fetching auction details:", error); }
     };
 
     if (CONTRACT_ID) {
       intervalId = setInterval(fetchEvents, 5000);
-      // Fetch auction details initially and then periodically if needed
       fetchAuctionDetails();
-      const detailsInterval = setInterval(fetchAuctionDetails, 30000); // Update every 30 seconds
-      return () => {
-        clearInterval(intervalId);
-        clearInterval(detailsInterval);
-      };
+      const detailsInterval = setInterval(fetchAuctionDetails, 30000); 
+      return () => { clearInterval(intervalId); clearInterval(detailsInterval); };
     }
     
-    // Countdown timer interval
     const timerId = setInterval(() => {
       if (auctionData.endTime === 0) return;
-      
       const now = Math.floor(Date.now() / 1000);
       const remaining = auctionData.endTime - now;
-      
       if (remaining <= 0) {
         setTimeLeft("Auction Ended");
         setStatus("ended");
         return;
       }
-      
       const hours = Math.floor(remaining / 3600);
       const minutes = Math.floor((remaining % 3600) / 60);
       const seconds = remaining % 60;
@@ -414,69 +332,41 @@ export default function AuctionUI() {
       setStatus("active");
     }, 1000);
 
-    return () => {
-      clearInterval(intervalId);
-      clearInterval(timerId);
-    };
-  }, [walletAddress, auctionData.endTime]); // Re-run if walletAddress or endTime changes
+    return () => { clearInterval(intervalId); clearInterval(timerId); };
+  }, [walletAddress, auctionData.endTime]); 
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
-      <h2 className="text-2xl font-bold text-center">BrewBid Auction</h2>
+      <h2 className="text-2xl font-bold text-center text-black">BrewBid Auction</h2>
       
       {!walletAddress ? (
-        <button 
-          onClick={connectWallet}
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
+        <button onClick={connectWallet} className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
           Connect Freighter Wallet
         </button>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-gray-500">
-            Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-          </p>
+          <p className="text-sm text-gray-500">Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</p>
           
           <div className="p-4 bg-gray-100 rounded-lg text-center">
             <p className="text-gray-500 text-sm">Current Highest Bid</p>
-            <p className="text-3xl font-bold text-gray-900">
-              {auctionData.highestBid} <span className="text-sm font-normal text-gray-500 uppercase">XLM</span>
-            </p>
+            <p className="text-3xl font-bold text-gray-900">{auctionData.highestBid} <span className="text-sm font-normal text-gray-500 uppercase">XLM</span></p>
           </div>
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
             <p className="text-sm font-medium text-blue-600 mb-1 uppercase tracking-wider">Time Remaining</p>
-            <p className="text-2xl font-mono font-bold text-blue-800">
-              {timeLeft || "Calculating..."}
-            </p>
+            <p className="text-2xl font-mono font-bold text-blue-800">{timeLeft || "Calculating..."}</p>
           </div>
 
           <div className="flex space-x-2">
-            <input
-              type="number"
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              placeholder="Bid amount in XLM"
-              className="border p-2 rounded w-full text-black"
-            />
-            <button
-              onClick={placeBid}
-              disabled={isBidding}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50"
-            >
+            <input type="number" value={bidAmount} onChange={(e) => setBidAmount(e.target.value)} placeholder="Bid amount in XLM" className="border p-2 rounded w-full text-black"/>
+            <button onClick={placeBid} disabled={isBidding} className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 disabled:opacity-50">
               {isBidding ? "Bidding..." : "Bid"}
             </button>
           </div>
 
           {auctionData.userRefund > 0 && (
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg text-center">
-              <p className="text-orange-800 text-sm font-medium mb-2">
-                You have a {auctionData.userRefund} XLM refund available!
-              </p>
-              <button
-                onClick={withdrawRefund}
-                disabled={isBidding}
-                className="w-full bg-orange-500 text-white p-2 rounded hover:bg-orange-600 disabled:opacity-50"
-              >
+              <p className="text-orange-800 text-sm font-medium mb-2">You have a {auctionData.userRefund} XLM refund available!</p>
+              <button onClick={withdrawRefund} disabled={isBidding} className="w-full bg-orange-500 text-white p-2 rounded hover:bg-orange-600 disabled:opacity-50">
                 {isBidding ? "Withdrawing..." : "Withdraw Refund"}
               </button>
             </div>
@@ -484,11 +374,7 @@ export default function AuctionUI() {
 
           <div className="pt-4 border-t">
             <p className="text-xs text-center text-gray-400 mb-2">Admin Section</p>
-            <button
-              onClick={initializeAuction}
-              disabled={isBidding}
-              className="w-full text-xs bg-gray-200 text-gray-600 p-2 rounded hover:bg-gray-300"
-            >
+            <button onClick={initializeAuction} disabled={isBidding} className="w-full text-xs bg-gray-200 text-gray-600 p-2 rounded hover:bg-gray-300">
               (Re)Initialize Auction (24h)
             </button>
           </div>
