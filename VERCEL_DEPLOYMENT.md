@@ -1,4 +1,4 @@
-# Vercel Deployment Guide for EthSpresso
+# Vercel Deployment Guide for BrewBid
 
 ## The Issue
 
@@ -10,7 +10,7 @@ Your project has the Next.js app in a `frontend/` subdirectory, but Vercel expec
 
 1. **Go to Vercel Dashboard**
    - Visit [vercel.com/dashboard](https://vercel.com/dashboard)
-   - Find your EthSpresso project
+   - Find your BrewBid project
 
 2. **Update Project Settings**
    - Click on your project
@@ -46,7 +46,7 @@ Your project has the Next.js app in a `frontend/` subdirectory, but Vercel expec
    - Set up and deploy: Yes
    - Which scope: Your account
    - Link to existing project: No (or Yes if already created)
-   - Project name: ethspresso
+   - Project name: brewbid
    - Directory: `./` (you're already in frontend)
    - Override settings: No
 
@@ -69,7 +69,7 @@ rm -rf frontend
 After deploying with the correct root directory:
 
 1. Visit your Vercel URL
-2. You should see the EthSpresso UI (not 404)
+2. You should see the BrewBid UI (not 404)
 3. Connect MetaMask
 4. Test sending a tip
 
@@ -108,7 +108,7 @@ vercel --prod
 
 - [ ] Root Directory set to `frontend` in Vercel
 - [ ] Deployment successful (no build errors)
-- [ ] Live URL shows EthSpresso UI (not 404)
+- [ ] Live URL shows BrewBid UI (not 404)
 - [ ] Wallet connection works
 - [ ] Can send test tips on Sepolia
 

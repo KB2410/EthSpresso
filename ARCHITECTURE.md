@@ -1,6 +1,6 @@
-# EthSpresso Architecture Diagram
+# BrewBid Architecture Diagram
 
-EthSpresso operates on a decentralized architecture leveraging the Stellar network and Soroban smart contracts. The application is divided into three main layers: the Client (Frontend), the Network (RPC & Wallet), and the Ledger (Smart Contract).
+BrewBid operates on a decentralized architecture leveraging the Stellar network and Soroban smart contracts. The application is divided into three main layers: the Client (Frontend), the Network (RPC & Wallet), and the Ledger (Smart Contract).
 
 ## System Flow Diagram
 

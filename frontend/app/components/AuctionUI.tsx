@@ -234,7 +234,7 @@ export default function AuctionUI() {
       
       const adminScVal = new Address(walletAddress).toScVal();
       // SES-safe explicit string construction
-      const itemScVal = xdr.ScVal.scvString("EthSpresso Special Roast");
+      const itemScVal = xdr.ScVal.scvString("BrewBid Special Roast");
       // Stellar Testnet Native XLM contract ID
       const tokenScVal = new Address("CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC").toScVal(); 
       // 🚨 FIX: SES-safe U64 formatting using BigInt and explicit typed ScInt
@@ -422,7 +422,7 @@ export default function AuctionUI() {
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
-      <h2 className="text-2xl font-bold text-center">EthSpresso Auction</h2>
+      <h2 className="text-2xl font-bold text-center">BrewBid Auction</h2>
       
       {!walletAddress ? (
         <button 

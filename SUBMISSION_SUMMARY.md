@@ -1,16 +1,16 @@
-# EthSpresso - Submission Summary
+# BrewBid - Submission Summary
 
 ## 🎉 Project Complete!
 
-Your EthSpresso Web3 dApp is fully functional and ready for submission.
+Your BrewBid Web3 dApp is fully functional and ready for submission.
 
 ## 📊 Project Overview
 
-**EthSpresso** is a decentralized application that allows users to send ETH tips with personalized messages on the Ethereum Sepolia testnet.
+**BrewBid** is a decentralized application that allows users to send ETH tips with personalized messages on the Ethereum Sepolia testnet.
 
 ## 🔗 Important Links
 
-- **GitHub Repository**: https://github.com/KB2410/EthSpresso
+- **GitHub Repository**: https://github.com/KB2410/BrewBid
 - **Live Demo**: https://eth-spresso-2lais6zcm-kb2410s-projects.vercel.app
 - **Smart Contract**: https://sepolia.etherscan.io/address/0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045
 - **Contract Address**: `0x89fFbaeDFcCC9FC357B63CE2C991962Edf3f6045`
@@ -102,7 +102,7 @@ Transaction hash: `0xbe96b658edbaf70bf82faa8269f9894c3e6e25ba027d89111f85fe06d70
 ## 📁 Project Structure
 
 ```
-EthSpresso/
+BrewBid/
 ├── contracts/
 │   ├── BuyMeACoffee.sol          # Main smart contract
 │   └── test/
@@ -163,8 +163,8 @@ EthSpresso/
 
 ### Option 2: Run Tests Locally
 ```bash
-git clone https://github.com/KB2410/EthSpresso
-cd EthSpresso
+git clone https://github.com/KB2410/BrewBid
+cd BrewBid
 npm install
 npm test
 ```
@@ -200,11 +200,11 @@ npx hardhat run scripts/test-transaction.ts --network sepolia
 
 Your project meets all requirements and is ready for submission:
 
-**Submit this link**: https://github.com/KB2410/EthSpresso
+**Submit this link**: https://github.com/KB2410/BrewBid
 
 ## 🙏 Thank You
 
-Thank you for reviewing EthSpresso! The project demonstrates:
+Thank you for reviewing BrewBid! The project demonstrates:
 - Solidity smart contract development
 - Comprehensive testing practices
 - Modern Web3 frontend development

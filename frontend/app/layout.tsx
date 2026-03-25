@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EthSpresso - Stellar Auction",
+  title: "BrewBid - Stellar Auction",
   description: "Real-time decentralized auction platform built on the Stellar network",
 };
 

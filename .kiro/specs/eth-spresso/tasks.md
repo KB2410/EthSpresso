@@ -1,8 +1,8 @@
-# Implementation Plan: EthSpresso Web3 Mini-dApp
+# Implementation Plan: BrewBid Web3 Mini-dApp
 
 ## Overview
 
-This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete coding tasks. The project consists of a Solidity smart contract for on-chain tip storage and a Next.js frontend with Web3 integration. Tasks are organized to build incrementally, starting with the smart contract, then the frontend infrastructure, and finally the UI components.
+This implementation plan breaks down the BrewBid Web3 mini-dApp into discrete coding tasks. The project consists of a Solidity smart contract for on-chain tip storage and a Next.js frontend with Web3 integration. Tasks are organized to build incrementally, starting with the smart contract, then the frontend infrastructure, and finally the UI components.
 
 ## Tasks
 
@@ -15,8 +15,8 @@ This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete
   - Install frontend dependencies: `wagmi`, `viem`, `@tanstack/react-query`, `@rainbow-me/rainbowkit`
   - _Requirements: 9.1, 9.2_
 
-- [x] 2. Implement EthSpresso smart contract
-  - [x] 2.1 Create EthSpresso.sol contract with core structure
+- [x] 2. Implement BrewBid smart contract
+  - [x] 2.1 Create BrewBid.sol contract with core structure
     - Define `Memo` struct with sender, amount, message, and timestamp fields
     - Declare `owner` state variable and `memos` array
     - Implement constructor to set owner to msg.sender
@@ -72,7 +72,7 @@ This implementation plan breaks down the EthSpresso Web3 mini-dApp into discrete
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
 - [x] 3. Create deployment script
-  - Write `scripts/deploy.ts` to deploy EthSpresso contract
+  - Write `scripts/deploy.ts` to deploy BrewBid contract
   - Log deployed contract address and owner
   - Export contract address and ABI for frontend use
   - _Requirements: 2.1_

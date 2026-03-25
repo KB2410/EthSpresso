@@ -1,19 +1,19 @@
-# EthSpresso ☕ - Real-Time Decentralized Auction dApp
+# BrewBid ☕ - Real-Time Decentralized Auction dApp
 
 **Stellar Journey to Mastery — Blue Belt (Level 5) Submission**
 
-EthSpresso is a real-time decentralized auction platform built on the Stellar network leveraging Soroban smart contracts. It allows users to list digital items for auction with strict time limits, while buyers connect their Freighter wallets to place secure, escrowed bids. 
+BrewBid is a real-time decentralized auction platform built on the Stellar network leveraging Soroban smart contracts. It allows users to list digital items for auction with strict time limits, while buyers connect their Freighter wallets to place secure, escrowed bids. 
 
 ## 🔗 Official Submission Links
 * **Live Demo:** [https://frontend-chi-wheat-42.vercel.app](https://frontend-chi-wheat-42.vercel.app)
 * **Demo Video:** [[YOUR_VIDEO_URL]]
-* **Feedback Document:** [user_feedback.csv](file:///Users/kartikbotre/Projects/Stellar Mastery Projects/EthSpresso/user_feedback.csv)
+* **Feedback Document:** [user_feedback.csv](file:///Users/kartikbotre/Projects/Stellar Mastery Projects/BrewBid/user_feedback.csv)
 
 ---
 
 ## 🏗️ Architecture & Technical Scope
 
-EthSpresso focuses on seamless frontend-to-backend integration within the Stellar ecosystem. 
+BrewBid focuses on seamless frontend-to-backend integration within the Stellar ecosystem. 
 
 * **Frontend (Next.js & Tailwind CSS):** Listens to Stellar network RPC polling to provide real-time UI updates on the current highest bid without requiring page refreshes.
 * **Wallet Integration:** Utilizes `@stellar/freighter-api` to authenticate users and securely sign `xdr` transactions.
@@ -25,7 +25,7 @@ EthSpresso focuses on seamless frontend-to-backend integration within the Stella
 
 ## 👥 User Validation (Blue Belt Requirement)
 
-To ensure a polished and frictionless user experience, EthSpresso was tested by 5 real testnet users who executed both the "Seller" and "Bidder" flows. 
+To ensure a polished and frictionless user experience, BrewBid was tested by 5 real testnet users who executed both the "Seller" and "Bidder" flows. 
 
 ### Verifiable Testnet Users
 1. `[User 1 Wallet Address starting with G...]` - [Link to Stellar Expert Explorer]
@@ -68,7 +68,7 @@ cargo test
 ```bash
 soroban contract build
 soroban contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/ethspresso_auction.wasm \
+  --wasm target/wasm32-unknown-unknown/release/brewbid_auction.wasm \
   --source [YOUR_TESTNET_IDENTITY] \
   --network testnet
 ```

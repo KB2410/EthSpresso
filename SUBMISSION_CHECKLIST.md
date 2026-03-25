@@ -1,4 +1,4 @@
-# EthSpresso Submission Checklist
+# BrewBid Submission Checklist
 
 ## ✅ Phase 1: Spec Creation (Completed)
 - [x] Created comprehensive requirements document
@@ -101,6 +101,6 @@ Include in your submission:
 
 ## 🎉 You're Ready!
 
-Once all checkboxes are complete, your EthSpresso dApp is ready for submission!
+Once all checkboxes are complete, your BrewBid dApp is ready for submission!
 
 Good luck! ☕

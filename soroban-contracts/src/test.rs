@@ -8,8 +8,8 @@ fn test_auction_flow() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let contract_id = env.register_contract(None, EthSpressoAuction);
-    let client = EthSpressoAuctionClient::new(&env, &contract_id);
+    let contract_id = env.register_contract(None, BrewBidAuction);
+    let client = BrewBidAuctionClient::new(&env, &contract_id);
 
     let admin = Address::generate(&env);
     let bidder1 = Address::generate(&env);
@@ -21,7 +21,7 @@ fn test_auction_flow() {
     let token_base_client = token::Client::new(&env, &token_id);
     let token_client = token::StellarAssetClient::new(&env, &token_id);
 
-    let item_name = String::from_str(&env, "EthSpresso Rare Mug");
+    let item_name = String::from_str(&env, "BrewBid Rare Mug");
 
     // 1. Initialize Auction
     client.initialize(&admin, &item_name, &token_id, &3600);
@@ -83,8 +83,8 @@ fn test_low_bid_fails() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let contract_id = env.register_contract(None, EthSpressoAuction);
-    let client = EthSpressoAuctionClient::new(&env, &contract_id);
+    let contract_id = env.register_contract(None, BrewBidAuction);
+    let client = BrewBidAuctionClient::new(&env, &contract_id);
 
     let admin = Address::generate(&env);
     let bidder = Address::generate(&env);

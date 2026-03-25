@@ -1,8 +1,8 @@
-# Design Document: EthSpresso Web3 Mini-dApp
+# Design Document: BrewBid Web3 Mini-dApp
 
 ## Overview
 
-EthSpresso is a full-stack Web3 application consisting of a Solidity smart contract and a Next.js frontend. The smart contract manages ETH tips with text memos on the Ethereum blockchain, while the frontend provides an intuitive interface for wallet connection, tip submission, and memo browsing.
+BrewBid is a full-stack Web3 application consisting of a Solidity smart contract and a Next.js frontend. The smart contract manages ETH tips with text memos on the Ethereum blockchain, while the frontend provides an intuitive interface for wallet connection, tip submission, and memo browsing.
 
 The architecture follows a clear separation between blockchain logic (smart contract) and presentation logic (frontend), connected through Web3 libraries (wagmi/viem). The design prioritizes user experience through efficient caching with React Query and clear transaction state management.
 
@@ -24,7 +24,7 @@ graph TB
     Frontend[Next.js Frontend]
     Wagmi[wagmi/viem Layer]
     RPC[Ethereum RPC Node]
-    Contract[EthSpresso Smart Contract]
+    Contract[BrewBid Smart Contract]
     
     User -->|Interacts| Frontend
     Frontend -->|Web3 Calls| Wagmi
@@ -40,9 +40,9 @@ graph TB
 ```
 eth-spresso/
 ├── contracts/
-│   ├── EthSpresso.sol           # Main smart contract
+│   ├── BrewBid.sol           # Main smart contract
 │   └── test/
-│       └── EthSpresso.test.ts   # Contract tests
+│       └── BrewBid.test.ts   # Contract tests
 ├── hardhat.config.ts            # Hardhat configuration
 ├── scripts/
 │   └── deploy.ts                # Deployment script
@@ -72,7 +72,7 @@ eth-spresso/
 
 ### Smart Contract Architecture
 
-The EthSpresso contract is a simple, gas-efficient contract with three core responsibilities:
+The BrewBid contract is a simple, gas-efficient contract with three core responsibilities:
 
 1. **Ownership Tracking**: Records deployer address at construction
 2. **Tip Processing**: Accepts ETH payments with memos, validates amount > 0
@@ -142,13 +142,13 @@ The frontend follows a component-based architecture with clear separation of con
 
 ### Smart Contract Components
 
-#### EthSpresso Contract
+#### BrewBid Contract
 
 ```solidity
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract EthSpresso {
+contract BrewBid {
     struct Memo {
         address sender;
         uint256 amount;

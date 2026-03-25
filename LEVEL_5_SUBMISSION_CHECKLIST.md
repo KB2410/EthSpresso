@@ -1,4 +1,4 @@
-# EthSpresso Level 5 Blue Belt Submission Checklist
+# BrewBid Level 5 Blue Belt Submission Checklist
 
 This document serves as your definitive guide to ensure every technical and operational requirement for the Level 5 Stellar Journey to Mastery submission is complete. 
 
@@ -56,4 +56,4 @@ The README is the first thing the judges will see. It must contain all required 
 - [ ] **Feedback Link:** A clear reference or link to the `user_feedback.xlsx` file.
 - [x] **Iteration Proof:** A specific explanation of the improvement made based on user feedback, accompanied by the **exact Git commit URL**.
 
-> **Final Verification:** Once every item on this list is checked, EthSpresso will be fully prepared for the Level 5 review and incredibly well-positioned for that ₹1 Lakh hackathon prize pool.
+> **Final Verification:** Once every item on this list is checked, BrewBid will be fully prepared for the Level 5 review and incredibly well-positioned for that ₹1 Lakh hackathon prize pool.

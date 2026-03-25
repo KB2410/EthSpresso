@@ -18,10 +18,10 @@ pub enum DataKey {
 }
 
 #[contract]
-pub struct EthSpressoAuction;
+pub struct BrewBidAuction;
 
 #[contractimpl]
-impl EthSpressoAuction {
+impl BrewBidAuction {
     /// Initializes the auction. Can only be called once.
     pub fn initialize(
         env: Env,

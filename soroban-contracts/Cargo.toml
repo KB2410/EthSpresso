@@ -1,5 +1,5 @@
 [package]
-name = "ethspresso-auction"
+name = "brewbid-auction"
 version = "0.1.0"
 edition = "2021"
 

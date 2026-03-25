@@ -2,13 +2,13 @@
 
 ## Introduction
 
-EthSpresso is a Web3 mini-dApp that enables users to send ETH tips with personalized text memos. The system consists of a Solidity smart contract for on-chain tip storage and a Next.js frontend for user interaction. The application prioritizes user experience through efficient data caching and clear transaction state feedback.
+BrewBid is a Web3 mini-dApp that enables users to send ETH tips with personalized text memos. The system consists of a Solidity smart contract for on-chain tip storage and a Next.js frontend for user interaction. The application prioritizes user experience through efficient data caching and clear transaction state feedback.
 
 ## Glossary
 
-- **EthSpresso_Contract**: The Solidity smart contract that handles ETH tip transactions and memo storage
+- **BrewBid_Contract**: The Solidity smart contract that handles ETH tip transactions and memo storage
 - **Memo**: A text message attached to an ETH tip transaction
-- **Tip**: An ETH payment sent by a user through the EthSpresso_Contract
+- **Tip**: An ETH payment sent by a user through the BrewBid_Contract
 - **Frontend**: The Next.js web application that provides the user interface
 - **Wallet**: The user's Web3 wallet (e.g., MetaMask) used for signing transactions
 - **RPC_Call**: Remote Procedure Call to the Ethereum blockchain network
@@ -22,10 +22,10 @@ EthSpresso is a Web3 mini-dApp that enables users to send ETH tips with personal
 
 #### Acceptance Criteria
 
-1. WHEN a user sends a transaction with ETH greater than 0 and a text memo, THE EthSpresso_Contract SHALL accept the tip and store the memo
-2. THE EthSpresso_Contract SHALL store each memo with the sender address, tip amount, and timestamp in an array
-3. WHEN a tip transaction is successfully processed, THE EthSpresso_Contract SHALL emit a NewTip event containing sender address, tip amount, memo text, and timestamp
-4. IF a user attempts to send a tip with 0 ETH, THEN THE EthSpresso_Contract SHALL revert the transaction
+1. WHEN a user sends a transaction with ETH greater than 0 and a text memo, THE BrewBid_Contract SHALL accept the tip and store the memo
+2. THE BrewBid_Contract SHALL store each memo with the sender address, tip amount, and timestamp in an array
+3. WHEN a tip transaction is successfully processed, THE BrewBid_Contract SHALL emit a NewTip event containing sender address, tip amount, memo text, and timestamp
+4. IF a user attempts to send a tip with 0 ETH, THEN THE BrewBid_Contract SHALL revert the transaction
 
 ### Requirement 2: Track Contract Ownership
 
@@ -33,8 +33,8 @@ EthSpresso is a Web3 mini-dApp that enables users to send ETH tips with personal
 
 #### Acceptance Criteria
 
-1. WHEN THE EthSpresso_Contract is deployed, THE EthSpresso_Contract SHALL record the deployer address as the owner
-2. THE EthSpresso_Contract SHALL provide a public function to retrieve the owner address
+1. WHEN THE BrewBid_Contract is deployed, THE BrewBid_Contract SHALL record the deployer address as the owner
+2. THE BrewBid_Contract SHALL provide a public function to retrieve the owner address
 
 ### Requirement 3: Retrieve Stored Memos
 
@@ -42,8 +42,8 @@ EthSpresso is a Web3 mini-dApp that enables users to send ETH tips with personal
 
 #### Acceptance Criteria
 
-1. THE EthSpresso_Contract SHALL provide a public function to retrieve all stored memos
-2. WHEN the memo retrieval function is called, THE EthSpresso_Contract SHALL return an array containing all memo data including sender addresses, tip amounts, memo texts, and timestamps
+1. THE BrewBid_Contract SHALL provide a public function to retrieve all stored memos
+2. WHEN the memo retrieval function is called, THE BrewBid_Contract SHALL return an array containing all memo data including sender addresses, tip amounts, memo texts, and timestamps
 
 ### Requirement 4: Verify Contract Behavior Through Tests
 
@@ -62,7 +62,7 @@ EthSpresso is a Web3 mini-dApp that enables users to send ETH tips with personal
 
 #### Acceptance Criteria
 
-1. THE Frontend SHALL display a list of all memos retrieved from the EthSpresso_Contract
+1. THE Frontend SHALL display a list of all memos retrieved from the BrewBid_Contract
 2. WHEN displaying memos, THE Frontend SHALL show the sender address, tip amount in ETH, memo text, and timestamp for each entry
 3. THE Frontend SHALL use Tailwind CSS for styling the memo display
 

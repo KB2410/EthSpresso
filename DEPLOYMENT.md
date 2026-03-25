@@ -1,4 +1,4 @@
-# EthSpresso Deployment Guide
+# BrewBid Deployment Guide
 
 ## Prerequisites
 

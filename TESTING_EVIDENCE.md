@@ -1,4 +1,4 @@
-# EthSpresso - Testing & Deployment Evidence
+# BrewBid - Testing & Deployment Evidence
 
 ## Smart Contract Tests - All Passing ✅
 
@@ -103,7 +103,7 @@ Proves the contract:
 
 ## Conclusion
 
-The EthSpresso dApp is fully functional with:
+The BrewBid dApp is fully functional with:
 - ✅ 3/3 smart contract tests passing
 - ✅ Successfully deployed to Sepolia testnet
 - ✅ Frontend deployed to Vercel

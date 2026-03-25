@@ -1,9 +1,9 @@
-# EthSpresso - Final Submission Checklist
+# BrewBid - Final Submission Checklist
 
 ## ✅ Completed Items
 
 ### Repository Requirements
-- [x] **Public GitHub repository**: https://github.com/KB2410/EthSpresso
+- [x] **Public GitHub repository**: https://github.com/KB2410/BrewBid
 - [x] **3+ meaningful commits**: ✅ 12+ commits total
   - Initial spec creation
   - Smart contract implementation
@@ -106,7 +106,7 @@ Your README must include:
 
 Your project is complete and ready for submission:
 
-1. **GitHub Repository**: https://github.com/KB2410/EthSpresso ✅
+1. **GitHub Repository**: https://github.com/KB2410/BrewBid ✅
 2. **README includes**:
    - ✅ Test screenshot
    - ✅ Live demo link
@@ -119,7 +119,7 @@ Your project is complete and ready for submission:
 
 If you want to create a demo video, here's a suggested script:
 
-**0:00-0:15** - "Hi, this is EthSpresso, a Web3 dApp for sending ETH tips with messages. Here's the live site."
+**0:00-0:15** - "Hi, this is BrewBid, a Web3 dApp for sending ETH tips with messages. Here's the live site."
 
 **0:15-0:30** - "The smart contract is deployed on Sepolia testnet. All 3 tests pass successfully."
 
@@ -140,7 +140,7 @@ If you want to create a demo video, here's a suggested script:
 
 ## 🎉 Congratulations!
 
-Your EthSpresso dApp is complete and ready for submission. You have:
+Your BrewBid dApp is complete and ready for submission. You have:
 - A working smart contract deployed to Sepolia
 - A beautiful frontend deployed to Vercel
 - Comprehensive documentation
